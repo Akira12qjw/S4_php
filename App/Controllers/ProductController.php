@@ -1,22 +1,33 @@
 <?php
-// Require SessionHelper and other necessary files
 require_once('app/config/database.php');
 require_once('app/model/ProductModel.php');
 require_once('app/model/CategoryModel.php');
+
 class ProductController
 {
     private $productModel;
     private $db;
+
     public function __construct()
     {
         $this->db = (new Database())->getConnection();
         $this->productModel = new ProductModel($this->db);
     }
+
+    private function checkAdminRole()
+    {
+        if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+            header('Location: /S4_PHP/Product/index');
+            exit;
+        }
+    }
+
     public function index()
     {
         $products = $this->productModel->getProducts();
         include 'app/views/products/list.php';
     }
+
     public function show($id)
     {
         $product = $this->productModel->getProductById($id);
@@ -26,13 +37,17 @@ class ProductController
             echo "Không thấy sản phẩm.";
         }
     }
+
     public function add()
     {
+        $this->checkAdminRole(); // Thêm kiểm tra quyền
         $categories = (new CategoryModel($this->db))->getCategories();
         include_once 'app/views/products/add.php';
     }
+
     public function save()
     {
+        $this->checkAdminRole(); // Thêm kiểm tra quyền
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $name = $_POST['name'] ?? '';
             $description = $_POST['description'] ?? '';
@@ -43,7 +58,6 @@ class ProductController
                 $name,
                 $description,
                 $price,
-
                 $category_id
             );
 
@@ -56,8 +70,10 @@ class ProductController
             }
         }
     }
+
     public function edit($id)
     {
+        $this->checkAdminRole(); // Thêm kiểm tra quyền
         $product = $this->productModel->getProductById($id);
         $categories = (new CategoryModel($this->db))->getCategories();
         if ($product) {
@@ -66,22 +82,25 @@ class ProductController
             echo "Không thấy sản phẩm.";
         }
     }
+
     public function update()
     {
+        $this->checkAdminRole(); // Thêm kiểm tra quyền
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = $_POST['id'];
             $name = $_POST['name'];
             $description = $_POST['description'];
             $price = $_POST['price'];
             $category_id = $_POST['category_id'];
+
             $edit = $this->productModel->updateProduct(
                 $id,
                 $name,
                 $description,
-
                 $price,
                 $category_id
             );
+
             if ($edit) {
                 header('Location: /S4_PHP/Product');
             } else {
@@ -89,8 +108,10 @@ class ProductController
             }
         }
     }
+
     public function delete($id)
     {
+        $this->checkAdminRole(); // Thêm kiểm tra quyền
         if ($this->productModel->deleteProduct($id)) {
             header('Location: /S4_PHP/Product');
         } else {

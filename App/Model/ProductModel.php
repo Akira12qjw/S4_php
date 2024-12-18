@@ -9,7 +9,7 @@ class ProductModel
     }
     public function getProducts()
     {
-        $query = "SELECT p.id, p.title, p.description, p.price, c.name as category_name
+        $query = "SELECT p.id, p.name, p.description, p.price, c.name as category_name
 
 FROM " . $this->table_name . " p
 LEFT JOIN category c ON p.category_id = c.id";
@@ -28,11 +28,11 @@ LEFT JOIN category c ON p.category_id = c.id";
         $result = $stmt->fetch(PDO::FETCH_OBJ);
         return $result;
     }
-    public function addProduct($title, $description, $price, $category_id)
+    public function addProduct($name, $description, $price, $category_id)
     {
         $errors = [];
-        if (empty($title)) {
-            $errors['title'] = 'Tên sản phẩm không được để trống';
+        if (empty($name)) {
+            $errors['name'] = 'Tên sản phẩm không được để trống';
         }
         if (empty($description)) {
             $errors['description'] = 'Mô tả không được để trống';
@@ -43,17 +43,19 @@ LEFT JOIN category c ON p.category_id = c.id";
         if (count($errors) > 0) {
             return $errors;
         }
-        $query = "INSERT INTO " . $this->table_name . " (title, description, price,
-category_id) VALUES (:title, :description, :price, :category_id)";
+        $query = "INSERT INTO " . $this->table_name . " (name, description, price,
+    category_id) VALUES (:name, :description, :price, :category_id)";
         $stmt = $this->conn->prepare($query);
-        $title = htmlspecialchars(strip_tags($title));
+        $name = htmlspecialchars(strip_tags($name));
         $description = htmlspecialchars(strip_tags($description));
         $price = htmlspecialchars(strip_tags($price));
         $category_id = htmlspecialchars(strip_tags($category_id));
-        $stmt->bindParam(':title', $title);
+
+        $stmt->bindParam(':name', $name);
         $stmt->bindParam(':description', $description);
         $stmt->bindParam(':price', $price);
         $stmt->bindParam(':category_id', $category_id);
+
         if ($stmt->execute()) {
             return true;
         }
@@ -68,11 +70,13 @@ description=:description, price=:price, category_id=:category_id WHERE id=:id";
         $description = htmlspecialchars(strip_tags($description));
         $price = htmlspecialchars(strip_tags($price));
         $category_id = htmlspecialchars(strip_tags($category_id));
+
         $stmt->bindParam(':id', $id);
         $stmt->bindParam(':name', $name);
         $stmt->bindParam(':description', $description);
         $stmt->bindParam(':price', $price);
         $stmt->bindParam(':category_id', $category_id);
+
         if ($stmt->execute()) {
             return true;
         }
